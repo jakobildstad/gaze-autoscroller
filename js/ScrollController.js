@@ -1,5 +1,5 @@
 // Tunable constants
-const SCROLL_SPEED = 60;           // target px/sec
+const SCROLL_SPEED = 120;          // target px/sec
 const TOP_ZONE = 0.15;             // top 15% triggers up-scroll
 const BOTTOM_ZONE = 0.85;          // bottom 15% triggers down-scroll
 const DEBOUNCE_MS = 200;           // gaze must stay in zone this long
