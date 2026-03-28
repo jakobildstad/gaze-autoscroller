@@ -1,0 +1,11 @@
+{
+  "name": "gaze-autoscroller",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve ."
+  },
+  "dependencies": {
+    "webgazer": "^2.1.0"
+  }
+}
