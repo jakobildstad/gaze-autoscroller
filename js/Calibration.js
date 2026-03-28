@@ -1,4 +1,4 @@
-const CLICKS_PER_POINT = 5; // number of clicks on each point before it's "done"
+const CLICKS_PER_POINT = 2;
 
 export class Calibration {
   /**
@@ -7,55 +7,91 @@ export class Calibration {
   constructor(overlay) {
     this._overlay = overlay;
     this._points = Array.from(overlay.querySelectorAll('.calibration-point'));
+    this._instructions = overlay.querySelector('#calibration-instructions');
   }
 
   /**
-   * Show the calibration overlay and wait for the user to click all points.
-   * Each point must be clicked CLICKS_PER_POINT times.
-   * WebGazer automatically trains on click events, so we just need clicks at known positions.
-   * @returns {Promise<void>} resolves when calibration is complete
+   * Sequential calibration: one dot at a time, user clicks each while looking at it.
+   * Much faster and clearer than showing all dots at once.
+   * @returns {Promise<void>}
    */
-  run() {
+  async run() {
+    this._overlay.classList.remove('hidden');
+
+    // Hide all points initially
+    this._points.forEach((p) => {
+      p.classList.remove('active', 'clicked');
+      p.style.display = 'none';
+    });
+
+    const total = this._points.length;
+
+    for (let i = 0; i < total; i++) {
+      const point = this._points[i];
+
+      // Update instructions
+      this._instructions.textContent = `Look at the dot and click it (${i + 1}/${total})`;
+
+      // Show and activate this point
+      point.style.display = '';
+      point.classList.add('active');
+
+      // Wait for the user to click it enough times
+      await this._waitForClicks(point, CLICKS_PER_POINT);
+
+      // Mark done
+      point.classList.remove('active');
+      point.classList.add('clicked');
+
+      // Brief pause so user sees the green confirmation
+      await this._sleep(250);
+
+      // Hide it
+      point.style.display = 'none';
+    }
+
+    // Done — brief flash then hide
+    this._instructions.textContent = 'Calibration complete!';
+    await this._sleep(500);
+
+    this._overlay.classList.add('hidden');
+
+    // Reset styles for next calibration
+    this._points.forEach((p) => {
+      p.classList.remove('active', 'clicked');
+      p.style.display = '';
+    });
+  }
+
+  /**
+   * Wait for N clicks on a specific point.
+   * @param {HTMLElement} point
+   * @param {number} needed
+   * @returns {Promise<void>}
+   */
+  _waitForClicks(point, needed) {
     return new Promise((resolve) => {
-      this._overlay.classList.remove('hidden');
+      let count = 0;
 
-      const clickCounts = new Map();
-      this._points.forEach((p) => clickCounts.set(p, 0));
+      const onClick = () => {
+        count++;
 
-      const onClick = (e) => {
-        const point = e.target;
-        if (!point.classList.contains('calibration-point')) return;
+        // Visual feedback: shrink the dot slightly on each click
+        const scale = 1 - (count / needed) * 0.3;
+        point.style.transform = `translate(-50%, -50%) scale(${scale})`;
 
-        const count = clickCounts.get(point) + 1;
-        clickCounts.set(point, count);
-
-        // Visual feedback: grow opacity as clicks accumulate
-        point.style.opacity = 0.3 + 0.7 * (count / CLICKS_PER_POINT);
-
-        if (count >= CLICKS_PER_POINT) {
-          point.classList.add('clicked');
-        }
-
-        // Check if all points are done
-        const allDone = this._points.every(
-          (p) => clickCounts.get(p) >= CLICKS_PER_POINT
-        );
-
-        if (allDone) {
-          this._overlay.removeEventListener('click', onClick);
-          this._overlay.classList.add('hidden');
-
-          // Reset point styles for next calibration
-          this._points.forEach((p) => {
-            p.classList.remove('clicked');
-            p.style.opacity = '';
-          });
-
+        if (count >= needed) {
+          point.removeEventListener('click', onClick);
+          point.style.transform = '';
           resolve();
         }
       };
 
-      this._overlay.addEventListener('click', onClick);
+      point.addEventListener('click', onClick);
     });
+  }
+
+  _sleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
   }
 }
