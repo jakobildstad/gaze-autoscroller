@@ -152,21 +152,26 @@ pdfInput.addEventListener('change', async (e) => {
   tracker.start();
   log('Gaze tracking started — look around to test');
 
-  // Report diagnostics periodically
-  const reportDiag = () => {
+  // Report diagnostics every 2 seconds for the first 20 seconds
+  let diagCount = 0;
+  const diagInterval = setInterval(() => {
+    diagCount++;
     const diag = tracker.getDiagnostics();
-    if (gazeCount === 0) {
-      if (diag.nullCount > 0) {
-        log(`Listener firing but all null (${diag.nullCount} nulls) — WebGazer sees your camera but can't predict gaze yet. Need more calibration clicks.`);
-      } else {
-        logError('Listener never fired', `nulls: ${diag.nullCount}, data: ${diag.dataCount}, ready: ${diag.isReady}. WebGazer may not be running.`);
-      }
-    } else {
-      log(`Tracking OK: ${gazeCount} gaze events, ${diag.nullCount} nulls`);
+    log(`[diag #${diagCount}] nulls: ${diag.nullCount}, gaze events: ${diag.dataCount}, ready: ${diag.isReady}`);
+
+    if (diag.dataCount > 0) {
+      log('Gaze tracking is working!');
+      clearInterval(diagInterval);
     }
-  };
-  setTimeout(reportDiag, 3000);
-  setTimeout(reportDiag, 8000);
+    if (diagCount >= 10) {
+      if (diag.dataCount === 0 && diag.nullCount === 0) {
+        logError('Gaze listener never fired at all', 'WebGazer face processing may be broken');
+      } else if (diag.dataCount === 0) {
+        logError('All predictions are null', 'WebGazer detects camera but cannot estimate gaze. Try recalibrating with better lighting.');
+      }
+      clearInterval(diagInterval);
+    }
+  }, 2000);
 });
 
 // Clean up on page unload

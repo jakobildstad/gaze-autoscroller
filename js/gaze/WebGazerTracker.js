@@ -4,18 +4,17 @@ export class WebGazerTracker extends GazeTracker {
   constructor() {
     super();
     this._onGaze = null;
+    this._nullCount = 0;
+    this._dataCount = 0;
+    this._videoElement = null;
   }
 
   async init(onGaze) {
     this._onGaze = onGaze;
 
-    // webgazer is loaded as a global from the CDN script tag
     if (typeof webgazer === 'undefined') {
       throw new Error('WebGazer.js is not loaded. Ensure the script tag is present.');
     }
-
-    this._nullCount = 0;
-    this._dataCount = 0;
 
     webgazer
       .setGazeListener((data, _elapsedTime) => {
@@ -28,11 +27,12 @@ export class WebGazerTracker extends GazeTracker {
       })
       .begin();
 
-    // Hide WebGazer's default overlay — we'll manage the video ourselves
-    webgazer.showVideoPreview(false);
+    // IMPORTANT: keep video preview ON — WebGazer needs its internal canvas
+    // for face mesh processing. We just make the container tiny and transparent.
+    webgazer.showVideoPreview(true);
     webgazer.showPredictionPoints(false);
 
-    // Wait for WebGazer to be ready (webcam access granted, model loaded)
+    // Wait for WebGazer to be ready
     await new Promise((resolve) => {
       const check = () => {
         if (webgazer.isReady()) {
@@ -44,19 +44,15 @@ export class WebGazerTracker extends GazeTracker {
       check();
     });
 
-    // Grab the webcam video element WebGazer created and expose it
-    this._videoElement = document.getElementById('webgazerVideoFeed');
-    if (this._videoElement) {
-      // Force it visible — WebGazer may hide it
-      this._videoElement.removeAttribute('hidden');
-      this._videoElement.style.cssText = 'width:100%;height:100%;display:block;object-fit:cover;';
-    }
-
-    // Also hide WebGazer's default container elements (face overlay, etc.)
+    // Make WebGazer's default container invisible but still in DOM and processing
+    // (moving off-screen or display:none can cause browsers to stop video processing)
     const wgContainer = document.getElementById('webgazerVideoContainer');
     if (wgContainer) {
-      wgContainer.style.cssText = 'position:absolute;top:-9999px;left:-9999px;';
+      wgContainer.style.cssText = 'position:fixed !important; top:0 !important; left:0 !important; width:1px !important; height:1px !important; opacity:0 !important; overflow:hidden !important; pointer-events:none !important; z-index:-1 !important;';
     }
+
+    // Grab the video element for our own debug preview
+    this._videoElement = document.getElementById('webgazerVideoFeed');
   }
 
   start() {
