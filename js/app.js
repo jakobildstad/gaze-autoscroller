@@ -8,25 +8,37 @@ const uploadScreen = document.getElementById('upload-screen');
 const readerScreen = document.getElementById('reader-screen');
 const pdfContainer = document.getElementById('pdf-container');
 const calibrateBtn = document.getElementById('calibrate-btn');
+const debugBtn = document.getElementById('debug-btn');
 const calibrationOverlay = document.getElementById('calibration-overlay');
 const gazeDot = document.getElementById('gaze-dot');
+const debugPanel = document.getElementById('debug-panel');
+const cameraContainer = document.getElementById('camera-container');
+const gazeCoords = document.getElementById('gaze-coords');
 
 const viewer = new PdfViewer(pdfContainer);
 const scrollController = new ScrollController(pdfContainer);
 const tracker = new WebGazerTracker();
 const calibration = new Calibration(calibrationOverlay);
 
-let gazeDebug = false;
+// Debug mode — ON by default so you can see what's happening
+let debugMode = true;
+debugBtn.classList.add('active');
 
-// Toggle gaze dot on double-click of calibrate button
-calibrateBtn.addEventListener('dblclick', () => {
-  gazeDebug = !gazeDebug;
-  gazeDot.classList.toggle('hidden', !gazeDebug);
+function updateDebugVisibility() {
+  gazeDot.classList.toggle('hidden', !debugMode);
+  debugPanel.classList.toggle('hidden', !debugMode);
+  debugBtn.classList.toggle('active', debugMode);
+}
+updateDebugVisibility();
+
+// Toggle debug mode
+debugBtn.addEventListener('click', () => {
+  debugMode = !debugMode;
+  updateDebugVisibility();
 });
 
 // Single click re-runs calibration
 calibrateBtn.addEventListener('click', async () => {
-  scrollController.destroy();
   tracker.stop();
   await calibration.run();
   tracker.start();
@@ -51,11 +63,23 @@ pdfInput.addEventListener('change', async (e) => {
     scrollController.onGaze(x, y);
 
     // Update debug dot position
-    if (gazeDebug) {
+    if (debugMode) {
       gazeDot.style.left = x + 'px';
       gazeDot.style.top = y + 'px';
+      gazeCoords.textContent = `${Math.round(x)}, ${Math.round(y)}`;
     }
   });
+
+  // Create our own video element using the same webcam stream
+  const srcVideo = tracker.getVideoElement();
+  if (srcVideo && srcVideo.srcObject) {
+    const debugVideo = document.createElement('video');
+    debugVideo.srcObject = srcVideo.srcObject;
+    debugVideo.autoplay = true;
+    debugVideo.playsInline = true;
+    debugVideo.muted = true;
+    cameraContainer.appendChild(debugVideo);
+  }
 
   // Run calibration on first use
   await calibration.run();

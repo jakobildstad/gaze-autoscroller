@@ -18,13 +18,18 @@
   <!-- Reader screen (hidden until PDF loaded) -->
   <div id="reader-screen" class="hidden">
     <div id="pdf-container"></div>
+    <div id="debug-panel">
+      <div id="camera-container"></div>
+      <div id="debug-info">Gaze: <span id="gaze-coords">--</span></div>
+    </div>
     <button id="calibrate-btn">Calibrate</button>
-    <div id="gaze-dot" class="hidden"></div>
+    <button id="debug-btn">Debug</button>
+    <div id="gaze-dot"></div>
   </div>
 
   <!-- Calibration overlay (hidden until triggered) -->
   <div id="calibration-overlay" class="hidden">
-    <p id="calibration-instructions">Click each dot to calibrate eye tracking</p>
+    <p id="calibration-instructions">LOOK at each dot and click it 5 times.<br>You must be looking at the dot while you click — this teaches the tracker where your eyes point.</p>
     <div class="calibration-point" data-index="0" style="top:10%;left:10%"></div>
     <div class="calibration-point" data-index="1" style="top:10%;left:50%"></div>
     <div class="calibration-point" data-index="2" style="top:10%;left:90%"></div>
