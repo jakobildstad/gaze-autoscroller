@@ -1,0 +1,149 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Upload screen */
+#upload-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+#upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 320px;
+  height: 180px;
+  border: 2px dashed #555;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #aaa;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+#upload-label:hover {
+  border-color: #888;
+  color: #ddd;
+}
+
+#pdf-input {
+  display: none;
+}
+
+/* Reader screen */
+#reader-screen {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#pdf-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  gap: 12px;
+  scroll-behavior: auto; /* we control scrolling via JS */
+}
+
+#pdf-container canvas {
+  display: block;
+  max-width: calc(100% - 40px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+/* Calibrate button */
+#calibrate-btn {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.1);
+  color: #ccc;
+  border: 1px solid #444;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  z-index: 100;
+  transition: background 0.2s;
+}
+
+#calibrate-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* Gaze debug dot */
+#gaze-dot {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  background: rgba(255, 50, 50, 0.6);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+}
+
+/* Calibration overlay */
+#calibration-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 10000;
+}
+
+#calibration-instructions {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.2rem;
+  color: #aaa;
+  text-align: center;
+  pointer-events: none;
+}
+
+.calibration-point {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: #4a90d9;
+  border-radius: 50%;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.calibration-point:hover {
+  background: #6ab0f9;
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.calibration-point.clicked {
+  background: #2ecc71;
+}
