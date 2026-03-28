@@ -36,6 +36,25 @@ function logError(msg, err) {
 
 log('App loaded');
 
+// --- Gaze smoothing filter ---
+// Averages the last N gaze samples to reduce jitter from WebGazer
+const SMOOTHING_SAMPLES = 6;
+const gazeBuffer = [];
+
+function smoothGaze(rawX, rawY) {
+  gazeBuffer.push({ x: rawX, y: rawY });
+  if (gazeBuffer.length > SMOOTHING_SAMPLES) {
+    gazeBuffer.shift();
+  }
+  const len = gazeBuffer.length;
+  let sx = 0, sy = 0;
+  for (let i = 0; i < len; i++) {
+    sx += gazeBuffer[i].x;
+    sy += gazeBuffer[i].y;
+  }
+  return { x: sx / len, y: sy / len };
+}
+
 // --- Module setup ---
 const viewer = new PdfViewer(pdfContainer);
 const scrollController = new ScrollController(pdfContainer);
@@ -94,8 +113,9 @@ pdfInput.addEventListener('change', async (e) => {
   // Initialize gaze tracker
   try {
     log('Initializing WebGazer (requesting webcam)...');
-    await tracker.init((x, y) => {
+    await tracker.init((rawX, rawY) => {
       gazeCount++;
+      const { x, y } = smoothGaze(rawX, rawY);
       scrollController.onGaze(x, y);
 
       if (debugMode) {
