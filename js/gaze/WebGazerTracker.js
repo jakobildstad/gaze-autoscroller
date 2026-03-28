@@ -14,9 +14,16 @@ export class WebGazerTracker extends GazeTracker {
       throw new Error('WebGazer.js is not loaded. Ensure the script tag is present.');
     }
 
+    this._nullCount = 0;
+    this._dataCount = 0;
+
     webgazer
       .setGazeListener((data, _elapsedTime) => {
-        if (data == null) return;
+        if (data == null) {
+          this._nullCount++;
+          return;
+        }
+        this._dataCount++;
         this._onGaze(data.x, data.y);
       })
       .begin();
@@ -63,6 +70,15 @@ export class WebGazerTracker extends GazeTracker {
   /** Returns the webcam video element for debug display. */
   getVideoElement() {
     return this._videoElement || null;
+  }
+
+  /** Returns diagnostic info about gaze listener activity. */
+  getDiagnostics() {
+    return {
+      nullCount: this._nullCount,
+      dataCount: this._dataCount,
+      isReady: typeof webgazer !== 'undefined' && webgazer.isReady(),
+    };
   }
 
   destroy() {

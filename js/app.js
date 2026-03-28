@@ -152,14 +152,21 @@ pdfInput.addEventListener('change', async (e) => {
   tracker.start();
   log('Gaze tracking started — look around to test');
 
-  // Report after a few seconds if no gaze data
-  setTimeout(() => {
+  // Report diagnostics periodically
+  const reportDiag = () => {
+    const diag = tracker.getDiagnostics();
     if (gazeCount === 0) {
-      logError('No gaze data received after 5s', 'WebGazer may not be detecting your face. Check lighting and camera angle.');
+      if (diag.nullCount > 0) {
+        log(`Listener firing but all null (${diag.nullCount} nulls) — WebGazer sees your camera but can't predict gaze yet. Need more calibration clicks.`);
+      } else {
+        logError('Listener never fired', `nulls: ${diag.nullCount}, data: ${diag.dataCount}, ready: ${diag.isReady}. WebGazer may not be running.`);
+      }
     } else {
-      log(`Received ${gazeCount} gaze events so far — tracking is working`);
+      log(`Tracking OK: ${gazeCount} gaze events, ${diag.nullCount} nulls`);
     }
-  }, 5000);
+  };
+  setTimeout(reportDiag, 3000);
+  setTimeout(reportDiag, 8000);
 });
 
 // Clean up on page unload
