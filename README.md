@@ -2,6 +2,12 @@
 
 A browser PDF reader that uses webcam gaze estimates to scroll as you read. WebGazer tracks gaze, PDF.js renders the document, and a six-sample smoothing filter reduces gaze jitter before the scroll controller responds.
 
+## Demo
+
+[![Gaze Autoscroller demo: hands-free PDF scrolling using eye tracking](public/demo.gif)](public/A27F149C-EE54-4C43-AB05-2D47B43C432A.MP4)
+
+[Watch the full video](public/A27F149C-EE54-4C43-AB05-2D47B43C432A.MP4).
+
 ## Run locally
 
 ```sh
